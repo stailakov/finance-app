@@ -24,7 +24,7 @@
 
 (defn update-transaction [request]
   {:status 200
-   :body (str request)})
+   :body (data/update-transaction-data request)})
 
 (defroutes compojure-handler
   (GET "/transaction" request (get-transactions request))

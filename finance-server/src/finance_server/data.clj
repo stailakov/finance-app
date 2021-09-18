@@ -27,15 +27,28 @@
              }]
     (execute res)))
 
-(defn insert-transacrion-querry [request]
+(defn insert-transaction-querry [request]
   (let [{:keys [body]} request
         {:keys [title sum]} body]
     {:insert-into :transaction
      :columns [:title :sum]
      :values [[title sum]]}))
 
+(defn update-transacrion-querry [request]
+  (let [
+        {:keys [body]} request
+        {:keys [id title sum]} body]
+    {:update :transaction
+             :set {:title title :sum sum}
+             :where [:= :id id]}
+     ))
+
+
 (defn insert-transaction-data [request]
-  (execute (insert-transacrion-querry request)))
+  (execute (insert-transaction-querry request)))
+
+(defn update-transaction-data [request]
+  (execute (update-transacrion-querry request)))
 
 (defn data-page[entity size page]
   {:data (select-with-paging entity size page)
