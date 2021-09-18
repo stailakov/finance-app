@@ -1,35 +1,47 @@
-(ns finance-server.core
-      (:require [clojure.set :refer [rename-keys]]
-            [korma.db :refer [defdb]]
-            [korma.core :refer :all])
-)
+(ns finance_server.data
+  (:require
+   [honeysql.core :as sql]
+   [next.jdbc :as jdbc]
+   )
+  )
 
-(defdb korma-db
-  {:classname "org.postgresql.Driver"
-                 :subprotocol "postgresql"
-                 :subname "//localhost:5432/finance"
-                 :user "postgres"
+(def db-config
+  {:dbtype "postgresql"
+   :dbname "finance"
+   :host "localhost"
+   :user "postgres"
    :password "postgres"})
 
-(defentity transaction)
+(def db (jdbc/get-datasource db-config))
 
-(select transaction)
-
+(defn execute [querry] (jdbc/execute! db (sql/format querry)))
 
 (defn page-offset [size page]
   (* size page))
 
+(defn select-with-paging [entity size page]
+  (let [res {:select [:*]
+             :from [entity]
+             :limit size
+             :offset (page-offset size page)
+             }]
+    (execute res)))
 
-(defn select-with-paging [entity size page field dir]
-  (let [res (select
-                   entity
-                   (limit size)
-                   (offset (page-offset size page))
-                   (order field dir))]
-    res))
+(defn data-page[entity size page]
+  {:data (select-with-paging entity size page)
+   :size size
+   :page page})
 
-(select-with-paging transaction 10 0 :title :desc)
 
+(defn get-transactions-data [request]
+  (let [ {:keys [params]} request
+       {:keys [size page]} params]
+  (data-page :transaction (Integer/parseInt size) (Integer/parseInt page))))
+
+;(data-page :transaction 10 0)
+
+
+;;(reduce + (map :transaction/sum (:data (data-page :transaction 10 0))))
 
 
 
