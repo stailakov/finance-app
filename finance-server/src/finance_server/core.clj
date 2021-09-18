@@ -24,12 +24,17 @@
 
 (defn update-transaction [request]
   {:status 200
-   :body (str request)})
+   :body (data/update-transaction-data request)})
+
+(defn delete-transaction [id]
+  {:status 200
+   :body (data/delete-transaction-data id)})
 
 (defroutes compojure-handler
   (GET "/transaction" request (get-transactions request))
   (POST "/transaction" request (insert-transaction request))
   (PUT "/transaction" request (update-transaction request))
+  (DELETE "/transaction/:id" [id] (delete-transaction id))
   (route/not-found "<h1>Not found!</h1>"))
 
 (def app (-> compojure-handler

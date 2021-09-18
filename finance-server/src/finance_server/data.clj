@@ -40,15 +40,20 @@
         {:keys [id title sum]} body]
     {:update :transaction
              :set {:title title :sum sum}
-             :where [:= :id id]}
-     ))
+             :where [:= :id id]}))
 
+(defn delete-transacrion-querry [id]
+  {:delete-from :transaction
+   :where [:= :id (Integer/parseInt id)]})
 
 (defn insert-transaction-data [request]
   (execute (insert-transaction-querry request)))
 
 (defn update-transaction-data [request]
   (execute (update-transacrion-querry request)))
+
+(defn delete-transaction-data [request]
+  (execute (delete-transacrion-querry request)))
 
 (defn data-page[entity size page]
   {:data (select-with-paging entity size page)
@@ -59,16 +64,5 @@
   (let [ {:keys [params]} request
        {:keys [size page]} params]
   (data-page :transaction (Integer/parseInt size) (Integer/parseInt page))))
-
-
-
-;(data-page :transaction 10 0)
-
-
-;;(reduce + (map :transaction/sum (:data (data-page :transaction 10 0))))
-
-
-
-
 
 
