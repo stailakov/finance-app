@@ -18,17 +18,20 @@
   {:status 200
    :body (data/get-transactions-data request)})
 
+(defn insert-transaction [request]
+  {:status 200
+   :body (data/insert-transaction-data request)})
+
 (defroutes compojure-handler
   (GET "/transaction" request (get-transactions request))
+  (POST "/transaction" request (insert-transaction request))
   (route/not-found "<h1>Not found!</h1>"))
 
-(defn wrap-json [handler] (-> handler
+(def app (-> compojure-handler
              wrap-json-response
+             (wrap-defaults
+              (assoc-in site-defaults [:security :anti-forgery] false))
              (wrap-json-body {:keywords? true})))
-
-(def app
-  (wrap-defaults
-   (wrap-json compojure-handler) site-defaults))
 
 
 (defn -main []
