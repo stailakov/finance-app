@@ -32,9 +32,9 @@
    :body (data/delete-transaction-data id)})
 
 (defroutes compojure-handler
-  (GET "/transaction" request (get-transactions request))
-  (POST "/transaction" request (insert-transaction request))
-  (PUT "/transaction" request (update-transaction request))
+  (GET "/transaction/" request (get-transactions request))
+  (POST "/transaction/" request (insert-transaction request))
+  (PUT "/transaction/" request (update-transaction request))
   (DELETE "/transaction/:id" [id] (delete-transaction id))
   (route/not-found "<h1>Not found!</h1>"))
 

@@ -30,9 +30,7 @@
 (def component-state (r/atom (hash-map)))
 (def edit-component-state (r/atom (hash-map)))
 (def simple-component-state (r/atom (hash-map)))
-
 (def header-buttons-state (r/atom (hash-map)))
-
 (def edit-row-state (r/atom nil))
 (def form-state (r/atom nil))
 (def str-state (r/atom (hash-map)))
@@ -132,13 +130,15 @@
   (do (doall (@create-function))
       (hidden-header-buttons)))
 
-(defn create-update-request []
-    (for [id @checkbox-edit-state]
-      (swap! update-request conj @(@state id))))
+(defn create-update []
+  (reduce conj [] ))
+
+(defn get-state-by-id [id]
+  @(@state id))
 
 (defn update-users []
-  (do (doall (create-update-request))
-      (http/update-user-request @update-request update-user-handler)))
+  (let [request (map get-state-by-id @checkbox-edit-state)] 
+      (http/update-user-request request update-user-handler)))
 
 (def update-button [button {:children "UPDATE"
                             :color :primary
@@ -280,7 +280,7 @@
             [table-head
              [table-row
               [table-cell]
-              (create-cells-header (:columns config/user))]]
+              (create-cells-header (:columns config/properties))]]
             (body-t)
             [table-footer
              [table-row @edit-row-state]

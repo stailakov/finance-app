@@ -6,7 +6,7 @@
    ))
 
 (defn get-data [handler]
-  (GET "http://localhost:3000/transaction"
+  (GET (:server-url config/properties)
        {:params {:size (data/page-state-value :size)
                  :page (data/page-state-value :page)}
         :handler #(handler %)
@@ -18,7 +18,7 @@
 
 
 (defn add-user [user handler]
-  (POST "http://localhost:3000/transaction"
+  (POST (:server-url config/properties)
         {:params user
          :format :json
          :handler #(handler %)
@@ -28,7 +28,7 @@
   )
 
 (defn update-user-request [user handler]
-  (PUT "http://localhost:3000/transaction"
+  (PUT (:server-url config/properties)
         {:params user
          :format :json
          :handler #(handler)
@@ -37,9 +37,8 @@
              })
   )
 
-
 (defn delete-user [id]
-  (DELETE (str "http://localhost:3000/transaction/" id)
+  (DELETE (str (:server-url config/properties) id)
         {:format :json
          :error-handler (fn [{:keys [status status-text]}]
                               (js/console.log status status-text))
