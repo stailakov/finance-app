@@ -6,6 +6,7 @@
         [ring.middleware.json :only [wrap-json-response wrap-json-body]]
         [ring.middleware.keyword-params :refer [wrap-keyword-params]]
         [ring.middleware.resource :refer [wrap-resource]]
+        [ring.middleware.cors :refer [wrap-cors]]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
         ring.util.response
         compojure.core
@@ -24,7 +25,7 @@
 
 (defn update-transaction [request]
   {:status 200
-   :body (data/update-transaction-data request)})
+   :body (data/update-all request)})
 
 (defn delete-transaction [id]
   {:status 200
@@ -41,7 +42,8 @@
              wrap-json-response
              (wrap-defaults
               (assoc-in site-defaults [:security :anti-forgery] false))
-             (wrap-json-body {:keywords? true})))
+             (wrap-json-body {:keywords? true})
+             (wrap-cors :access-control-allow-origin [#".*"] :access-control-allow-methods [:get :post :delete :put])))
 
 
 (defn -main []

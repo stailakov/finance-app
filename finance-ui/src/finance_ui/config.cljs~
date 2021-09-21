@@ -1,0 +1,9 @@
+(ns health-crud-ui.config)
+
+(def user {
+           :columns ["ID" "Full Name" "Sex" "Birth Date" "Address" "OMS"]
+           :fields [:id :full_name :sex :birth_date :address :oms_number]
+           }
+  )
+
+
