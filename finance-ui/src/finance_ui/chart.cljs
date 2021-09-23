@@ -6,16 +6,38 @@
             ))
 
 
-(def chart-data [{:x 1 :y 1}
-                 {:x 2 :y 2}
-                 {:x 3 :y 4}
-                 {:x 4 :y 10}
-                 {:x 5 :y 4}
-                 {:x 6 :y 6}
-                 {:x 7 :y 8}
-                 {:x 8 :y 6}
-                 {:x 9 :y 5}
-                 {:x 10 :y 5}])
+(def dates ["2020-10-01" "2021-10-01" "1900-10-10" "1900-11-11"])
+(def res [
+                 {:title "AAARBUZ1" :sum "12" :date "2020-10-10"}
+                 {:title "AAARBUZ2" :sum "13" :date "2020-10-10"}
+                 {:title "AAARBUZ3" :sum "14" :date "2020-11-10"}
+                 {:title "AAARBUZ4" :sum "15" :date "2020-11-10"}
+                 {:title "AAARBUZ5" :sum "16" :date "2020-12-10"}
+                 {:title "AAARBUZ6" :sum "17" :date "2020-12-10"}
+                 {:title "AAARBUZ7" :sum "1" :date "2020-10-10"}
+                 ])
+
+
+
+(defn get-year [row] (js/parseInt ( first (clojure.string/split (:date row) "-"))))
+
+(defn get-month [row] (js/parseInt ( second (clojure.string/split (:date row) "-"))))
+
+(defn get-month-string [arr]
+  (js/Date. (str (first arr) "-" (second arr))))
+
+(defn sum-of-array [arr]
+  (let [key (first arr)
+        sum (reduce + (map js/parseInt (map :sum (second arr))))
+        ]
+    {:x (get-month-string key) :y sum}
+  ))
+
+(defn collect-data [data] (map sum-of-array
+                               (group-by (juxt get-year get-month) data)))
+
+(defn get-sum [res]
+  (reduce + (map js/parseInt (map :sum (:data res)))))
 
 (def axis-style {:line {:stroke "#333"
                         :strokeLinecap "square"}
@@ -25,11 +47,13 @@
 
 (defn line-chart [data]
   [:> rvis/XYPlot
-   {:width 800
+   {:xType "time"
+    :width 800
     :height 225
     :margin {:left 50 :right 50}}
    [:> rvis/XAxis
-    {:tickTotal 10
+    {:title "Date"
+     :tickTotal 4
      :tickSizeInner 0
      :tickSizeOuter 3
      :style axis-style}]
@@ -45,7 +69,8 @@
              :strokeLinejoin "round"
              :strokeLinecap "round"}}]])
 
-(defn transaction-chart []
+(defn transaction-chart [data]
   [:div
-   [line-chart chart-data]])
+   [line-chart (collect-data data)]])
 
+  

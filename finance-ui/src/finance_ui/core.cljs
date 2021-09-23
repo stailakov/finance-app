@@ -1,5 +1,6 @@
 (ns finance-ui.core
   (:require [clojure.walk :as walk]
+            [cljs.reader :as reader]
             [reagent.core :as r]
             [reagent-material-ui.colors :as colors]
             [reagent-material-ui.core.button :refer [button]]
@@ -22,7 +23,7 @@
             [finance-ui.config :as config]
             [finance-ui.chart :as ch]
             [finance-ui.httpclient :as http]
-            [finance-ui.datatable :as data]
+            [finance-ui.statemanager :as state]
             ))
 
 (def body (r/atom nil))
@@ -40,10 +41,12 @@
 (def create-function (r/atom nil))
 (def checkbox-edit-state (r/atom #{}))
 
+(defn state-array [] (for [[k v] @state] @v))
+
 
 (defn add-row-to-state [element]
   (let [{:keys [id]} element]
-    (do (swap! state assoc id (r/atom element)))
+    (swap! state assoc id (r/atom element))
     ))
 
 (defn update-component [id component]
@@ -69,8 +72,8 @@
   (for [v names]
     (conj res (fn [] [table-cell v])))))
 
-(defn delete-user-by-id [id]
-  (do (http/delete-user id)
+(defn delete-transaction-by-id [id]
+  (do (http/delete-transaction id)
       (swap! component-state dissoc id)
       (swap! edit-component-state dissoc id)
       (swap! simple-component-state dissoc id)
@@ -89,10 +92,10 @@
   (fn [] hidden-header-buttons-if-all-unchecked))
 
 
-(defn delete-user-handler []
-  (do (doall (map delete-user-by-id @checkbox-edit-state))
+(defn delete-transaction-handler []
+  (do (mapv delete-transaction-by-id @checkbox-edit-state)
       (hidden-header-buttons)
-      (data/dec-count)))
+      (state/dec-count)))
 
 
 (defn create-editable-cells [row]
@@ -126,7 +129,7 @@
   (let [cells (create-editable-cells id)]
     (update-component id (r/atom cells))))
 
-(defn update-user-handler []
+(defn update-transactions-handler []
   (do (doall (@create-function))
       (hidden-header-buttons)))
 
@@ -136,26 +139,26 @@
 (defn get-state-by-id [id]
   @(@state id))
 
-(defn update-users []
+(defn update-transactions []
   (let [request (map get-state-by-id @checkbox-edit-state)] 
-      (http/update-user-request request update-user-handler)))
+      (http/update-transactions request update-transactions-handler)))
 
 (def update-button [button {:children "UPDATE"
                             :color :primary
                             :variant :outlined
-                            :on-click #(update-users)
+                            :on-click #(update-transactions)
                             }])
 
 
 (def delete-button [button {:children "DELETE"
                             :color :secondary
                             :variant :contained
-                            :on-click #(delete-user-handler)
+                            :on-click #(delete-transaction-handler)
                             }])
 
 (defn checkbox-handler [id]
   (do (swap! checkbox-edit-state conj id)
-    (swap! component-state assoc id (@edit-component-state id))
+      (swap! component-state assoc id (@edit-component-state id))
       (swap! header-buttons-state assoc :update update-button)
       (swap! header-buttons-state assoc :delete delete-button))
   )
@@ -202,16 +205,25 @@
     (create-component-row row)))
 
 
-(defn add-user-handler [response]
+(defn add-transaction-handler [response]
   (do
      (doall (create-component-row-new (walk/keywordize-keys response)))
       (reset! form-state nil)
       (reset! str-state nil)
-      (data/inc-count)
+      (state/inc-count)
       ))
 
+(defn parse-timestamp
+  [ts]
+  (if-let [[years months days hours minutes seconds ms offset]
+           (reader/parse-and-validate-timestamp ts)]
+    (js/Date.
+      (- (.UTC js/Date years (dec months) days hours minutes seconds ms)
+        (* offset 60 1000)))
+    (throw (js/Error. (str "Unrecognized date/time syntax: " ts)))))
 
-(def new-user-form
+
+(def input-transaction-form
   [table-row
    [table-cell [text-field {:helper-text "Title"
                 :on-change #(swap! str-state assoc :title (-> % .-target .-value))}]]
@@ -225,7 +237,7 @@
            [button {:children "ADD"
                     :color :primary
                     :variant :outlined
-                    :on-click #(http/add-user @str-state add-user-handler)
+                    :on-click #(http/add-transaction @str-state add-transaction-handler)
                     }]
    [button {:children "CANCEL"
                     :color :primary
@@ -233,10 +245,10 @@
                     :on-click #(reset! form-state nil)
                     }]])
 
-(defn get-user-handler [response]
+(defn get-transaction-handler [response]
   (let [{:keys [data count]} response]
     (do
-      (data/update-page-state :count count)
+      (state/update-page-state :count count)
      (doall (map add-row-to-state data))
      (doall (create-components-rows))
      )
@@ -255,10 +267,10 @@
 
 
 (defn fetch-data []
-  (http/get-data get-user-handler))
+  (http/get-data get-transaction-handler))
 
 (defn change-rows-per-page [new-page]
-  (do (data/update-page-state :size new-page)
+  (do (state/update-page-state :size new-page)
       (reset! component-state nil)
       (reset! state nil)
         (reset! edit-component-state nil)
@@ -267,7 +279,7 @@
 
 
 (defn change-page [new-page]
-  (do (data/update-page-state :page new-page)
+  (do (state/update-page-state :page new-page)
       (reset! component-state nil)
       (reset! state nil)
         (reset! edit-component-state nil)
@@ -287,18 +299,19 @@
              [table-row
               [table-pagination {:on-change-page (fn [event page] (change-page page))
                                  :on-change-rows-per-page #(change-rows-per-page (-> % .-target .-value))
-                                 :rows-per-page (data/page-state-value :size)
-                                 :count (data/page-state-value :count)
-                                 :page (data/page-state-value :page)}]]]]))
+                                 :rows-per-page (state/page-state-value :size)
+                                 :count (state/page-state-value :count)
+                                 :page (state/page-state-value :page)}]]]]))
 
 
-(defn new-page []
-  (fn [] [:span.main
-          [:h1 (str "Patient list")]
+(defn data-page []
+  (fn [] (let [arr (state-array)]
+           [:span.main
+          [:h1 (str "My Transactions")]
           [:div [button {:children "NEW"
                          :color :primary
                          :variant :outlined
-                         :on-click #(reset! form-state new-user-form)
+                         :on-click #(reset! form-state input-transaction-form)
                          }]
            (@header-buttons-state :update)
            (@header-buttons-state :delete)
@@ -310,15 +323,15 @@
            [(data-table)]
            ]
           
-           [grid (ch/transaction-chart)]
-           
-           ]))
+           [grid (ch/transaction-chart arr)]
+           [:din (str arr)]
+           ])))
 
-
+(state-array)
 
 (defn start []
   (do
-      (r/render-component [new-page]
+      (r/render-component [data-page]
                                 (. js/document (getElementById "app")))
       (fetch-data)
       (reset! create-function create-components-rows)

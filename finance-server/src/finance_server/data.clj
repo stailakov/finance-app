@@ -14,7 +14,7 @@
 
 (def db (jdbc/get-datasource db-config))
 
-(defn execute [querry] (jdbc/execute! db (sql/format querry){:return-keys ["id" "title" "sum"]}))
+(defn execute [querry] (jdbc/execute! db (sql/format querry){:return-keys ["id" "title" "sum" "date"]}))
 
 (defn page-offset [size page]
   (* size page))
@@ -27,24 +27,45 @@
              }]
     (execute res)))
 
+(defn get-count []
+  (:count (first (execute {:select [:%count.*]
+             :from [:transaction]
+             }))))
+
+
+(defn parse-date [string]
+  (java.time.LocalDate/parse string))
+
+(defn cast [c x]
+  (sql/call :cast x (sql/raw (name c))))
+
+(defn ->date [x]
+  (cast :date x))
+
+
 (defn insert-transaction-querry [request]
   (let [{:keys [body]} request
-        {:keys [title sum]} body]
+        {:keys [title sum date]} body]
     {:insert-into :transaction
-     :columns [:title :sum]
-     :values [[title (Integer/parseInt sum)]]}))
-
+     :columns [:title :sum :date]
+     :values [[title (Integer/parseInt sum) (->date date)]]}))
 
 (defn update-transacrion-querry [element]
-  (let [{:keys [id title sum]} element]
+  (let [{:keys [id title sum date]} element]
       {:update :transaction
-             :set {:title title :sum sum}
+             :set {:title title :sum sum :date (->date date)}
              :where [:= :id id]}))
 
 (defn delete-transacrion-querry [id]
   {:delete-from :transaction
    :where [:= :id (Integer/parseInt id)]})
 
+(defn date-from-inst [date]
+  (.format (java.text.SimpleDateFormat. "yyyy-MM-dd") date))
+
+
+(defn cut-date [m]
+  (assoc m :date (date-from-inst (m :date))))
 
 (defn unwrap [row]
   {
@@ -55,9 +76,8 @@
    }
   )
 
-
 (defn insert-transaction-data [request]
-(unwrap(first  (execute (insert-transaction-querry request)))))
+(cut-date (unwrap(first  (execute (insert-transaction-querry request))))))
 
 (defn update-transaction-data [element]
   (execute (update-transacrion-querry element)))
@@ -72,17 +92,25 @@
 
 
 (defn data-page[entity size page]
-  {:data (map unwrap (select-with-paging entity size page))
+  {:data (map cut-date (map unwrap (select-with-paging entity size page)))
    :size size
-   :page page})
+   :page page
+   :count (get-count)})
 
-(def req {:body {:title "AAARBUZ" :sum "12"}})
+(def req {:body {:title "AAARBUZ" :sum "12" :date "2020-10-10"}})
 
-(insert-transaction-data req)
+;(sql/format (insert-transaction-querry req))
+;(insert-transaction-data req)
 
-(execute (insert-transaction-querry req))
+                                        ;(map cut-date (:data (data-page :transaction 1 0)))
 
-(data-page :transaction 10 0)
+;(map cut-date (map unwrap (select-with-paging :transaction 10 0)))
+
+
+;(update-transacrion-querry {:id 50 :title "asaaa" :sum 77777 :date "2021-09-15"})
+
+
+;(data-page :transaction 10 0)
 
 (defn get-transactions-data [request]
   (let [ {:keys [params]} request
