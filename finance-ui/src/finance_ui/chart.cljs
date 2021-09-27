@@ -15,6 +15,8 @@
                  {:title "AAARBUZ5" :sum "16" :date "2020-12-10"}
                  {:title "AAARBUZ6" :sum "17" :date "2020-12-10"}
                  {:title "AAARBUZ7" :sum "1" :date "2020-10-10"}
+                 {:title "AAARBUZ7" :sum "1" :date "2021-09-10"}
+                 {:title "AAARBUZ7" :sum "1" :date "2021-09-10"}
                  ])
 
 
@@ -26,6 +28,7 @@
 (defn get-month-string [arr]
   (js/Date. (str (first arr) "-" (second arr))))
 
+
 (defn sum-of-array [arr]
   (let [key (first arr)
         sum (reduce + (map js/parseInt (map :sum (second arr))))
@@ -36,8 +39,21 @@
 (defn collect-data [data] (map sum-of-array
                                (group-by (juxt get-year get-month) data)))
 
+(count (collect-data res))
 (defn get-sum [res]
-  (reduce + (map js/parseInt (map :sum (:data res)))))
+  (reduce + (map js/parseInt (map :sum res))))
+
+(defn current-year-month []
+  [(.getFullYear ( js/Date.))
+   (+ (.getMonth ( js/Date.)) 1)])
+
+(defn current-month-sum [data]
+  (get-sum
+   (get
+    (group-by
+     (juxt get-year get-month) data)
+    (current-year-month))))
+
 
 (def axis-style {:line {:stroke "#333"
                         :strokeLinecap "square"}
@@ -53,7 +69,7 @@
     :margin {:left 50 :right 50}}
    [:> rvis/XAxis
     {:title "Date"
-     :tickTotal 4
+     :tickTotal (count data)
      :tickSizeInner 0
      :tickSizeOuter 3
      :style axis-style}]

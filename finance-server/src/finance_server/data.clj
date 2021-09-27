@@ -53,7 +53,7 @@
 (defn update-transacrion-querry [element]
   (let [{:keys [id title sum date]} element]
       {:update :transaction
-             :set {:title title :sum sum :date (->date date)}
+             :set {:title title :sum (Integer/parseInt sum) :date (->date date)}
              :where [:= :id id]}))
 
 (defn delete-transacrion-querry [id]

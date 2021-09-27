@@ -4,6 +4,7 @@
             [reagent.core :as r]
             [reagent-material-ui.colors :as colors]
             [reagent-material-ui.core.button :refer [button]]
+            [reagent-material-ui.core.container :refer [container]]
             [reagent-material-ui.core.table :refer [table]]
             [reagent-material-ui.core.table-head :refer [table-head]]
             [reagent-material-ui.core.table-body :refer [table-body]]
@@ -41,7 +42,7 @@
 (def create-function (r/atom nil))
 (def checkbox-edit-state (r/atom #{}))
 
-(defn state-array [] (for [[k v] @state] @v))
+(defn state-array [st] (for [[k v] st] @v))
 
 
 (defn add-row-to-state [element]
@@ -74,6 +75,7 @@
 
 (defn delete-transaction-by-id [id]
   (do (http/delete-transaction id)
+      (swap! state dissoc id)
       (swap! component-state dissoc id)
       (swap! edit-component-state dissoc id)
       (swap! simple-component-state dissoc id)
@@ -305,10 +307,25 @@
 
 
 (defn data-page []
-  (fn [] (let [arr (state-array)]
+  (fn [] (let [arr @state
+               local-arr (state-array arr)]
            [:span.main
           [:h1 (str "My Transactions")]
-          [:div [button {:children "NEW"
+          
+          
+             [grid 
+                        [table-row
+                         [table-cell (ch/transaction-chart local-arr)]
+                         [table-cell [:h3 (str "Current month: "
+                                          (ch/current-month-sum local-arr) " EAU")]]
+                         
+             ]]
+
+          [grid {:item true}
+           [(data-table)]
+           ]
+
+            [:div [button {:children "NEW"
                          :color :primary
                          :variant :outlined
                          :on-click #(reset! form-state input-transaction-form)
@@ -319,16 +336,9 @@
           [grid
            @form-state]
 
-          [grid {:item true}
-           [(data-table)]
-           ]
-          
-           [grid (ch/transaction-chart arr)]
-           [:din (str arr)]
-           ])))
+            ])))
 
-(state-array)
-
+(count @state)
 (defn start []
   (do
       (r/render-component [data-page]
