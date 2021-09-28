@@ -1,9 +1,7 @@
 (ns finance_server.data
   (:require
    [honeysql.core :as sql]
-   [next.jdbc :as jdbc]
-   )
-  )
+   [next.jdbc :as jdbc]))
 
 (def db-config
   {:dbtype "postgresql"
@@ -31,7 +29,6 @@
   (:count (first (execute {:select [:%count.*]
              :from [:transaction]
              }))))
-
 
 (defn parse-date [string]
   (java.time.LocalDate/parse string))
@@ -63,7 +60,6 @@
 (defn date-from-inst [date]
   (.format (java.text.SimpleDateFormat. "yyyy-MM-dd") date))
 
-
 (defn cut-date [m]
   (assoc m :date (date-from-inst (m :date))))
 
@@ -73,8 +69,7 @@
    :title (:transaction/title row)
    :sum (:transaction/sum row)
    :date (:transaction/date row)
-   }
-  )
+   })
 
 (defn insert-transaction-data [request]
 (cut-date (unwrap(first  (execute (insert-transaction-querry request))))))
@@ -90,31 +85,14 @@
         {:keys [body]} request]
      (map update-transaction-data body)))
 
-
 (defn data-page[entity size page]
   {:data (map cut-date (map unwrap (select-with-paging entity size page)))
    :size size
    :page page
    :count (get-count)})
 
-(def req {:body {:title "AAARBUZ" :sum "12" :date "2020-10-10"}})
-
-;(sql/format (insert-transaction-querry req))
-;(insert-transaction-data req)
-
-                                        ;(map cut-date (:data (data-page :transaction 1 0)))
-
-;(map cut-date (map unwrap (select-with-paging :transaction 10 0)))
-
-
-;(update-transacrion-querry {:id 50 :title "asaaa" :sum 77777 :date "2021-09-15"})
-
-
-;(data-page :transaction 10 0)
-
 (defn get-transactions-data [request]
   (let [ {:keys [params]} request
        {:keys [size page]} params]
   (data-page :transaction (Integer/parseInt size) (Integer/parseInt page))))
-
 
