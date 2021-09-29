@@ -2,15 +2,12 @@
 {:source-paths
  ["src"]
 
- :dependencies [[binaryage/devtools "0.9.7"]
+ :dependencies [
+                [binaryage/devtools "0.9.7"]
                 [reagent "0.8.0-alpha2"]
                 [reagent-utils "0.3.3"]
                 [arttuka/reagent-material-ui "4.11.2-0"]
                 [cljs-ajax "0.8.1"]
-                [bidi "2.1.6"]
-                [venantius/accountant "0.2.5"]
-                [cheshire "5.10.0"]
-                [pez/clerk "1.0.0"]
                 ]
 
  ;; set an nrepl port for connection to a REPL.

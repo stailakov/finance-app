@@ -1,0 +1,18 @@
+version: '3.1'
+services:
+ db:
+  image: postgres
+  restart: always
+  environment:
+   POSTGRES_PASSWORD: postgres
+  volumes:
+    - ./db:/docker-entrypoint-initdb.d/
+  ports:
+    - 5433:5432
+
+ finance-server:
+   build: .
+   ports:
+     - "3000:3000"
+   depends_on:
+     - db

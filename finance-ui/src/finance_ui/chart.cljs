@@ -6,21 +6,6 @@
             ))
 
 
-(def dates ["2020-10-01" "2021-10-01" "1900-10-10" "1900-11-11"])
-(def res [
-                 {:title "AAARBUZ1" :sum "12" :date "2020-10-10"}
-                 {:title "AAARBUZ2" :sum "13" :date "2020-10-10"}
-                 {:title "AAARBUZ3" :sum "14" :date "2020-11-10"}
-                 {:title "AAARBUZ4" :sum "15" :date "2020-11-10"}
-                 {:title "AAARBUZ5" :sum "16" :date "2020-12-10"}
-                 {:title "AAARBUZ6" :sum "17" :date "2020-12-10"}
-                 {:title "AAARBUZ7" :sum "1" :date "2020-10-10"}
-                 {:title "AAARBUZ7" :sum "1" :date "2021-09-10"}
-                 {:title "AAARBUZ7" :sum "1" :date "2021-09-10"}
-                 ])
-
-
-
 (defn get-year [row] (js/parseInt ( first (clojure.string/split (:date row) "-"))))
 
 (defn get-month [row] (js/parseInt ( second (clojure.string/split (:date row) "-"))))
@@ -37,9 +22,8 @@
   ))
 
 (defn collect-data [data] (map sum-of-array
-                               (group-by (juxt get-year get-month) data)))
+                               (sort (group-by (juxt get-year get-month) data))))
 
-(count (collect-data res))
 (defn get-sum [res]
   (reduce + (map js/parseInt (map :sum res))))
 

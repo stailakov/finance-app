@@ -11,7 +11,6 @@ COPY ./shadow-cljs.edn ./
 COPY ./package.json ./
 
 RUN npm install
-EXPOSE 8700
 RUN shadow-cljs release app
 
 FROM nginx:alpine as runtime

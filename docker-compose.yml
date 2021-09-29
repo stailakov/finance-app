@@ -1,0 +1,29 @@
+version: '3'
+services:
+  finance-ui:
+    build:
+      context: ./finance-ui
+      dockerfile: Dockerfile
+    ports:
+      - 80:80
+    depends_on:
+      - finance-server
+
+  db:
+    image: postgres
+    restart: always
+    environment:
+     POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./finance-server/db:/docker-entrypoint-initdb.d/
+    ports:
+      - 5433:5432
+      
+  finance-server:
+     build:
+       context: ./finance-server
+       dockerfile: Dockerfile
+     ports:
+       - 3000:3000
+     depends_on:
+       - db

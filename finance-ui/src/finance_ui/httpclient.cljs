@@ -16,7 +16,6 @@
                               (js/console.log status status-text))})
   )
 
-
 (defn add-transaction [user handler]
   (POST (:server-url config/properties)
         {:params user

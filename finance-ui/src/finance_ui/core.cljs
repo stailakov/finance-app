@@ -38,12 +38,10 @@
 (def str-state (r/atom (hash-map)))
 (def response-state (r/atom nil))
 (def update-request (r/atom #{}))
-
 (def create-function (r/atom nil))
 (def checkbox-edit-state (r/atom #{}))
 
 (defn state-array [st] (for [[k v] st] @v))
-
 
 (defn add-row-to-state [element]
   (let [{:keys [id]} element]
@@ -66,7 +64,6 @@
 
 (defn appl [f]
   (.apply js/console.log js/console (f)))
-
 
 (defn create-cells-header [names]
   (let [res []]
@@ -93,19 +90,16 @@
 (defn check-if-hid-needed []
   (fn [] hidden-header-buttons-if-all-unchecked))
 
-
 (defn delete-transaction-handler []
   (do (mapv delete-transaction-by-id @checkbox-edit-state)
       (hidden-header-buttons)
       (state/dec-count)))
-
 
 (defn create-editable-cells [row]
   (let [{:keys [id full_name sex birth_date address oms_number]} row]
     (fn [] [table-row
             [checkbox {:checked true
                        :on-change (fn [] (do (swap! component-state assoc id (@simple-component-state id))
-                                        ;                                            (hidden-header-buttons)
                                              (hidden-header-buttons-if-all-unchecked (swap! checkbox-edit-state disj id))
                                              ))}
              ]         
@@ -165,7 +159,6 @@
       (swap! header-buttons-state assoc :delete delete-button))
   )
 
-
 (defn create-cells [row]
   (let [{:keys [id title sum date]} row]
     [table-row
@@ -178,7 +171,6 @@
      [table-cell date]
      ]
      ))
-
 
 (defn create-component-row [row]
   (let [{:keys [id]} row
@@ -199,13 +191,11 @@
           (create-component-row @v))
       ))
 
-
 (defn create-component-row-new [row]
   (do
     (add-row-to-state row)
     (create-component-row-to-edit-state row)
     (create-component-row row)))
-
 
 (defn add-transaction-handler [response]
   (do
@@ -317,7 +307,7 @@
                         [table-row
                          [table-cell (ch/transaction-chart local-arr)]
                          [table-cell [:h3 (str "Current month: "
-                                          (ch/current-month-sum local-arr) " EAU")]]
+                                          (ch/current-month-sum local-arr) " UAH")]]
                          
              ]]
 

@@ -52,6 +52,3 @@
    {:port 3000
     :join? false}))
 
-(def server (-main))
-(.stop server)
-

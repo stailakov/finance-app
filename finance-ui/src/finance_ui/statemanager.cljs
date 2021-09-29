@@ -1,8 +1,5 @@
 (ns finance-ui.statemanager
-  (:require
-            [reagent.core :as r]
-            [finance-ui.config :as config]
-            ))
+  (:require [reagent.core :as r]))
 
 (def page-state (r/atom (hash-map :size 10 :page 0)))
 

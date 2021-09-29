@@ -5,8 +5,6 @@
             :url "https://www.eclipse.org/legal/epl-2.0/"}
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [org.clojure/core.match "1.0.0"]
-                 [korma "0.5.0-RC1"]
-                 [com.h2database/h2 "1.3.170"]
                  [org.postgresql/postgresql "42.2.18"]
                  [ring "1.8.2"]
                  [ring/ring-json "0.3.1"]
@@ -18,4 +16,6 @@
                  [com.github.seancorfield/next.jdbc "1.2.659"]]
   :plugins [[lein-ring "0.12.5"]]
   :ring {:handler finance_server.core/app
-         :auto-refresh? true})
+         :auto-refresh? true}
+  :main finance_server.core
+  :aot [finance_server.core])
